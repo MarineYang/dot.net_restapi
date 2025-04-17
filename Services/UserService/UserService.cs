@@ -55,7 +55,7 @@ namespace webserver.Services.UserService
             var result = await _userRepository.AddUserAsync(newUser);
             if (result.ErrorCode != DBErrorCode.Success)
             {
-                return ResponseWrapper<Res_UserRegisterDto>.Failure(ErrorType.BadRequest, result.Message);
+                return ResponseWrapper<Res_UserRegisterDto>.Failure(ErrorType.BadRequest, result.ErrorMessage);
             }
 
             var res = new Res_UserRegisterDto
