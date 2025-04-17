@@ -52,7 +52,11 @@ namespace webserver.Services.UserService
                 Password = req.Password 
             };
 
-            await _userRepository.AddUserAsync(newUser);
+            var result = await _userRepository.AddUserAsync(newUser);
+            if (result.ErrorCode != DBErrorCode.Success)
+            {
+                return ResponseWrapper<Res_UserRegisterDto>.Failure(ErrorType.BadRequest, result.Message);
+            }
 
             var res = new Res_UserRegisterDto
             {

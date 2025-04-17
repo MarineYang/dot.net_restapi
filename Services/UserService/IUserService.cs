@@ -2,7 +2,7 @@
 using webserver.DTOs;
 using webserver.Utils;
 
-namespace webserver.Services.UserService
+namespace webserver.Services.IUserService
 {
     public interface IUserService
     {
