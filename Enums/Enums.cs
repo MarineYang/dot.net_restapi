@@ -4,6 +4,10 @@
     {
         Success = 0,
         Failure = 1,
+
+        UserPasswordMismatch = 2,
+        UserNotFound = 3,
+
         BadRequest = 400,
         Unauthorized = 401,
         NotFound = 404,
