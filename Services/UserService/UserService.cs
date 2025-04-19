@@ -41,7 +41,7 @@ namespace webserver.Services.UserService
             }
 
             var existingUser = await _userRepository.GetByUsernameAsync(req.Username);
-            if (existingUser != null)
+            if (existingUser.Data != null)
             {
                 return ResponseWrapper<Res_UserRegisterDto>.Failure(ErrorType.BadRequest, "Username already exists");
             }

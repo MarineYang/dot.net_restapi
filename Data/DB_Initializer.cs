@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.Common;
-using System.Threading.Tasks;
+﻿using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.Extensions.Logging;
 using webserver.Utils;
 using webserver.Enums;
-using Microsoft.Extensions.Configuration;
+using MySqlConnector;
 
 namespace webserver.Data
 {
@@ -40,7 +35,7 @@ namespace webserver.Data
                     return DBResult<bool>.Fail(DBErrorCode.DatabaseConnectionError, "Connection string is null or empty");
                 }
 
-                using var connection = new Microsoft.Data.SqlClient.SqlConnection(connectionString);
+                using var connection = new MySqlConnection(connectionString);
                 await connection.OpenAsync();
 
                 _logger.LogInformation("DB Connection Success {connectionString}", connectionString);
@@ -49,7 +44,7 @@ namespace webserver.Data
                 
                 
             }
-            catch (Microsoft.Data.SqlClient.SqlException ex)
+            catch (MySqlException ex)
             {
                 _logger.LogError(ex, "DB Connection Error");
                 return DBResult<bool>.Fail(DBErrorCode.DatabaseConnectionError, ex.Message);

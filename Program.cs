@@ -6,6 +6,9 @@ using Microsoft.Extensions.Hosting;
 using webserver.Data;
 using webserver.Enums;
 using webserver.Repositories.UserRepository;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
+using webserver.Services.UserService;
+using webserver.Extensions;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,9 +19,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddDbContextPool<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")), poolSize: 128); // 풀 크기 조정 가능
+builder.Services.AddDbContextFactory<ApplicationDbContext>(options => options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"), ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))));
 builder.Services.AddScoped<DB_Initializer>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddServices();
+builder.Services.AddRepositories();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -42,6 +47,8 @@ using (var scope = app.Services.CreateScope())
             var logger = services.GetRequiredService<ILogger<Program>>();
             logger.LogError("DB Init Fail: {ErrorMessage}", result.ErrorMessage);
         }
+        var logger2 = services.GetRequiredService<ILogger<Program>>();
+        logger2.LogInformation("Server Running . ");
     }
     catch (Exception ex)
     {
