@@ -27,9 +27,9 @@ namespace webserver.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetUser(Req_UserLoginDto req)
+        public async Task<IActionResult> GetUser(int id)
         {
-            return Ok(await _userService.GetUserAsync(req));
+            return Ok(await _userService.GetUserAsync(id));
         }
     }
 
