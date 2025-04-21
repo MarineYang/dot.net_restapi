@@ -35,7 +35,7 @@ namespace webserver.Repositories.RoomRepository
             });
         }
 
-        public async Task<DBResult<Room>> CreateRoom(Room room)
+        public async Task<DBResult<Room>> CreateRoomAsync(Room room)
         {
             return await _dbInitializer.ExecuteLambda<Room>(async (context) =>
             {
