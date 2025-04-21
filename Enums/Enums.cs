@@ -29,5 +29,14 @@
         UnknownError = 999
     }
 
+    public enum RoomType
+    {
+        Normal = 0,
+        Waiting = 1,
+        Playing = 2,
+        Finished = 3
+    }
+
+
 }
 

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using webserver.Data;
 using webserver.Enums;
 using webserver.Extensions;
+using webserver.Utils;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +15,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContextFactory<ApplicationDbContext>(options => options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"), ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))));
 builder.Services.AddScoped<DB_Initializer>();
+builder.Services.AddSingleton<RedisHelper>();
 builder.Services.AddServices();
 builder.Services.AddRepositories();
 
