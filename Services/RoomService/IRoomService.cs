@@ -2,12 +2,12 @@
 using webserver.Models;
 using webserver.Utils;
 
-namespace webserver.Services.IRoomService
+namespace webserver.Services.RoomService
 {
     public interface IRoomService
     {
         Task<ResponseWrapper<Res_GetRoomsDto>> GetRoomsAsync(int page, int pageSize);
-        Task<DBResult<Room>> GetRoomByIdAsync(int id);
+        //Task<DBResult<Room>> GetRoomByIdAsync(int id);
         Task<ResponseWrapper<Res_CreateRoomDto>> CreateRoomAsync(Req_CreateRoomDto req);
     }
 }

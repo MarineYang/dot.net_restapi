@@ -5,10 +5,9 @@ using webserver.Models;
 using webserver.Repositories.RoomRepository;
 using webserver.Utils;
 
-
 namespace webserver.Services.RoomService
 {
-    public class RoomService
+    public class RoomService : IRoomService
     {
         private readonly IRoomRepository _roomRepository;
         private readonly RedisHelper redisHelper;

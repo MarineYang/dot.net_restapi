@@ -5,7 +5,7 @@ using webserver.Enums;
 using webserver.Models;
 using webserver.Repositories.UserRepository;
 using webserver.Services.GameService;
-using webserver.Services.IRoomService;
+using webserver.Services.RoomService;
 
 namespace webserver.Hubs
 {

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using webserver.DTOs;
-using webserver.Services.IUserService;
-using webserver.Services.IRoomService;
+using webserver.Services.UserService;
+using webserver.Services.RoomService;
 
 namespace webserver.Controllers
 {
