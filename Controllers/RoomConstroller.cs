@@ -5,7 +5,8 @@ using webserver.Services.IRoomService;
 
 namespace webserver.Controllers
 {
-    
+    // 내일은 AuthController를 만들어서 인증 관련된 것들을 처리할 예정
+    // Game hub 구현
     [ApiController]
     [Route("api/rooms")]
     public class RoomConstroller : ControllerBase

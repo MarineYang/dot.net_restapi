@@ -1,7 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
+using StackExchange.Redis;
 using webserver.Data;
 using webserver.Enums;
 using webserver.Extensions;
+using webserver.Hubs;
+using webserver.Services.GameService;
 using webserver.Utils;
 
 
@@ -12,14 +16,25 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Card Game WebServer", Version = "v1" });
+    //c.AddSignalRSwaggerGen(); // 왜 안되지...;;
+});
 builder.Services.AddDbContextFactory<ApplicationDbContext>(options => options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"), ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))));
 builder.Services.AddScoped<DB_Initializer>();
-builder.Services.AddSingleton<RedisHelper>();
+
+var redisConnectionString = builder.Configuration.GetConnectionString("Redis");
+builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConnectionString));
 builder.Services.AddServices();
 builder.Services.AddRepositories();
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<GameService>();
+
 
 var app = builder.Build();
+
+app.MapHub<GameHub>("/gamehub");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

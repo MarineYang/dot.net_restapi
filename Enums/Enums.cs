@@ -36,7 +36,13 @@
         Playing = 2,
         Finished = 3
     }
-
+    public enum GameStatus
+    {
+        Waiting = 1,    // 상대방 대기 중
+        Playing = 2,    // 게임 진행 중
+        War = 3,        // War 상태 (동점)
+        Finished = 4    // 게임 종료
+    }
 
 }
 
