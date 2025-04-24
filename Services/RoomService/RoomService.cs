@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.SignalR;
 using webserver.DTOs;
 using webserver.Enums;
+using webserver.Hubs;
 using webserver.Models;
 using webserver.Repositories.RoomRepository;
 using webserver.Utils;
@@ -11,11 +14,13 @@ namespace webserver.Services.RoomService
     {
         private readonly IRoomRepository _roomRepository;
         private readonly RedisHelper redisHelper;
+        private readonly IHubContext<GameHub> _hubContext;
 
-        public RoomService(IRoomRepository roomRepository, RedisHelper redisHelper)
+        public RoomService(IRoomRepository roomRepository, RedisHelper redisHelper, IHubContext<GameHub> hubContext)
         {
             _roomRepository = roomRepository;
             this.redisHelper = redisHelper;
+            _hubContext = hubContext;
         }
         public async Task<ResponseWrapper<Res_GetRoomsDto>> GetRoomsAsync(int page, int pageSize)
         {
@@ -90,7 +95,52 @@ namespace webserver.Services.RoomService
                 }
             };
 
-            return ResponseWrapper<Res_CreateRoomDto>.Success(res, "Room list successfully");
+            ////var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var userId = 1; // TODO: User ID 가져오는 부분 수정 필요
+            //await _hubContext.Clients.User(userId.ToString()).SendAsync("RoomCreated", res.Room); // SignalR로 방 생성 알림
+            await _hubContext.Clients.All.SendAsync("RoomCreated", userId, res.Room);
+
+            return ResponseWrapper<Res_CreateRoomDto>.Success(res, "Room created successfully");
+        }
+
+        public async Task<ResponseWrapper<Res_JoinRoomDto>> JoinRoomAsync(Req_JoinRoomDto req)
+        {
+            var room = await _roomRepository.GetRoomByIdAsync(req.RoomId);
+            if (room.Data == null || room.Data.IsDelete || room.ErrorCode != DBErrorCode.Success)
+            {
+                return ResponseWrapper<Res_JoinRoomDto>.Failure(ErrorType.BadRequest, "Room not found");
+            }
+            var currentPlayers = await redisHelper.GetCurrentPlayersAsync(req.RoomId);
+
+            if (currentPlayers >= room.Data.MaxPlayers)
+            {
+                return ResponseWrapper<Res_JoinRoomDto>.Failure(ErrorType.RoomFull, "Room is full");
+            }
+
+            await redisHelper.UpdateCurrentPlayersAsync(req.RoomId, currentPlayers + 1);
+
+            var roomDto = new RoomDTO
+            {
+                Id = room.Data.Id,
+                Name = room.Data.RoomName,
+                MaxPlayers = room.Data.MaxPlayers,
+                CurrentPlayers = currentPlayers + 1,
+                CreatedAt = room.Data.CreatedAt
+            };
+
+            var userId = 1; // TODO: User ID 가져오는 부분 수정 필요
+            // 방에 참가한 사용자에게 알림
+            await _hubContext.Clients.Group(req.RoomId.ToString()).SendAsync("UserJoined", userId, roomDto);
+
+            // 방에 참가한 사용자 그룹에 추가
+            await _hubContext.Groups.AddToGroupAsync(userId.ToString(), req.RoomId.ToString());
+
+            // 5. 응답 반환
+            var res = new Res_JoinRoomDto
+            {
+                Room = roomDto
+            };
+            return ResponseWrapper<Res_JoinRoomDto>.Success(res, "Joined room successfully");
         }
     }
 }

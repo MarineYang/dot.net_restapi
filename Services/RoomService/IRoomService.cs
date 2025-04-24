@@ -9,5 +9,7 @@ namespace webserver.Services.RoomService
         Task<ResponseWrapper<Res_GetRoomsDto>> GetRoomsAsync(int page, int pageSize);
         //Task<DBResult<Room>> GetRoomByIdAsync(int id);
         Task<ResponseWrapper<Res_CreateRoomDto>> CreateRoomAsync(Req_CreateRoomDto req);
+
+        Task<ResponseWrapper<Res_JoinRoomDto>> JoinRoomAsync(Req_JoinRoomDto req);
     }
 }

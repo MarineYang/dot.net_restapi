@@ -27,8 +27,13 @@ namespace webserver.Controllers
         }
         [HttpPost("create")]
         public async Task<IActionResult> CreateRoom([FromBody] Req_CreateRoomDto req)
-        {
+        {            
             return Ok(await _roomService.CreateRoomAsync(req));
+        }
+        [HttpPost("join")]
+        public async Task<IActionResult> JoinRoom([FromBody] Req_JoinRoomDto req)
+        {
+            return Ok(await _roomService.JoinRoomAsync(req));
         }
     }
 }

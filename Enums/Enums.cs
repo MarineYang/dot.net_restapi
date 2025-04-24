@@ -8,6 +8,7 @@
         UserPasswordMismatch = 2,
         UserNotFound = 3,
 
+        RoomFull = 100,
         BadRequest = 400,
         Unauthorized = 401,
         NotFound = 404,

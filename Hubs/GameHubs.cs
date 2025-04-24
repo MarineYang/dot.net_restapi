@@ -14,12 +14,15 @@ namespace webserver.Hubs
         private readonly GameService _gameService;
         private readonly ILogger<GameHub> _logger;
         private readonly IUserRepository _userRepository;
+        private readonly IRoomService _roomService;
 
-        public GameHub(GameService gameService, ILogger<GameHub> logger, IUserRepository userRepository)
+
+        public GameHub(GameService gameService, ILogger<GameHub> logger, IUserRepository userRepository, IRoomService roomService)
         {
             _gameService = gameService;
             _logger = logger;
             _userRepository = userRepository;
+            _roomService = roomService;
         }
 
         public async Task joinRoom(string roomId)

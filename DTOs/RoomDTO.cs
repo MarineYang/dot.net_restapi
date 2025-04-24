@@ -14,7 +14,16 @@
         public RoomDTO Room { get; set; }
     }
 
+    public class Req_JoinRoomDto
+    {
+        public int RoomId { get; set; }
+    }
+    public class Res_JoinRoomDto
+    {
+        public RoomDTO Room { get; set; }
+    }
 
+    
     public class RoomDTO
     {
         public int Id { get; set; }

@@ -85,6 +85,20 @@ namespace webserver.Utils
             return entries.Select(entry => (roomId: int.Parse(entry.Element), currentPlayers: (int)entry.Score)).ToList();
 
         }
+        public async Task<int> GetCurrentPlayersAsync(int roomId)
+        {
+            var db = _redis.GetDatabase();
+            string key = $"room:{roomId}:currentPlayers";
+            var value = await db.StringGetAsync(key);
+            return value.HasValue ? (int)value : 0;
+        }
+
+        public async Task UpdateCurrentPlayersAsync(int roomId, int currentPlayers)
+        {
+            var db = _redis.GetDatabase();
+            string key = $"room:{roomId}:currentPlayers";
+            await db.StringSetAsync(key, currentPlayers);
+        }
 
         public async Task CreateRoomAsync(int roomId)
         {
