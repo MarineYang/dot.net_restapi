@@ -5,6 +5,7 @@ using webserver.DTOs;
 using webserver.Enums;
 using webserver.Models;
 using webserver.Repositories.UserRepository;
+using webserver.Services.JwtService;
 using webserver.Utils;
 
 namespace webserver.Services.UserService
@@ -12,11 +13,12 @@ namespace webserver.Services.UserService
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IJwtService _jwtService;
 
-
-        public UserService(IUserRepository userRepository)
+        public UserService(IUserRepository userRepository, IJwtService jwtService)
         {
             _userRepository = userRepository;
+            _jwtService = jwtService;
         }
 
         public async Task<ResponseWrapper<Res_UserRegisterDto>> RegisterAsync(Req_UserRegisterDto req)
@@ -51,8 +53,8 @@ namespace webserver.Services.UserService
 
             var res = new Res_UserRegisterDto
             {
-                AccessToken = "GeneratedAccessToken",
-                RefreshToken = "GeneratedRefreshToken"
+                AccessToken = _jwtService.GenerateAccessToken(result.Data),
+                RefreshToken = _jwtService.GenerateRefreshToken()
             };
 
             return ResponseWrapper<Res_UserRegisterDto>.Success(res, "User registered successfully");
@@ -79,9 +81,14 @@ namespace webserver.Services.UserService
             }
             var res = new Res_UserLoginDto
             {
-                AccessToken = "GeneratedAccessToken",
-                RefreshToken = "GeneratedRefreshToken"
+                AccessToken = _jwtService.GenerateAccessToken(user.Data),
+                RefreshToken = _jwtService.GenerateRefreshToken()
             };
+
+            // Redis에 AccessToken과 RefreshToken 저장
+            await _jwtService.StoreAccessTokenAsync(user.Data.Id, res.AccessToken, TimeSpan.FromMinutes(15));
+            await _jwtService.StoreRefreshTokenAsync(user.Data.Id, res.RefreshToken, TimeSpan.FromDays(7));
+
             return ResponseWrapper<Res_UserLoginDto>.Success(res, "User logged in successfully");
         }
 

@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.SignalR;
 using webserver.DTOs;
@@ -15,12 +16,14 @@ namespace webserver.Services.RoomService
         private readonly IRoomRepository _roomRepository;
         private readonly RedisHelper redisHelper;
         private readonly IHubContext<GameHub> _hubContext;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public RoomService(IRoomRepository roomRepository, RedisHelper redisHelper, IHubContext<GameHub> hubContext)
+        public RoomService(IRoomRepository roomRepository, RedisHelper redisHelper, IHubContext<GameHub> hubContext, IHttpContextAccessor httpContextAccessor)
         {
             _roomRepository = roomRepository;
             this.redisHelper = redisHelper;
             _hubContext = hubContext;
+            _httpContextAccessor = httpContextAccessor;
         }
         public async Task<ResponseWrapper<Res_GetRoomsDto>> GetRoomsAsync(int page, int pageSize)
         {
@@ -66,6 +69,11 @@ namespace webserver.Services.RoomService
         }
         public async Task<ResponseWrapper<Res_CreateRoomDto>> CreateRoomAsync(Req_CreateRoomDto req)
         {
+            var userIdClaim = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                return ResponseWrapper<Res_CreateRoomDto>.Failure(ErrorType.Unauthorized, "Invalid or missing user ID");
+            }
             if (req == null)
             {
                 return ResponseWrapper<Res_CreateRoomDto>.Failure(ErrorType.BadRequest, "Invalid request");
@@ -96,7 +104,7 @@ namespace webserver.Services.RoomService
             };
 
             ////var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            var userId = 1; // TODO: User ID 가져오는 부분 수정 필요
+            //var userId = 1; // TODO: User ID 가져오는 부분 수정 필요
             //await _hubContext.Clients.User(userId.ToString()).SendAsync("RoomCreated", res.Room); // SignalR로 방 생성 알림
             await _hubContext.Clients.All.SendAsync("RoomCreated", userId, res.Room);
 
@@ -105,6 +113,13 @@ namespace webserver.Services.RoomService
 
         public async Task<ResponseWrapper<Res_JoinRoomDto>> JoinRoomAsync(Req_JoinRoomDto req)
         {
+            // JWT 토큰에서 사용자 ID 추출
+            var userIdClaim = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                return ResponseWrapper<Res_JoinRoomDto>.Failure(ErrorType.Unauthorized, "Invalid or missing user ID");
+            }
+
             var room = await _roomRepository.GetRoomByIdAsync(req.RoomId);
             if (room.Data == null || room.Data.IsDelete || room.ErrorCode != DBErrorCode.Success)
             {
@@ -128,14 +143,13 @@ namespace webserver.Services.RoomService
                 CreatedAt = room.Data.CreatedAt
             };
 
-            var userId = 1; // TODO: User ID 가져오는 부분 수정 필요
+            //var userId = 1; // TODO: User ID 가져오는 부분 수정 필요
             // 방에 참가한 사용자에게 알림
             await _hubContext.Clients.Group(req.RoomId.ToString()).SendAsync("UserJoined", userId, roomDto);
 
             // 방에 참가한 사용자 그룹에 추가
             await _hubContext.Groups.AddToGroupAsync(userId.ToString(), req.RoomId.ToString());
 
-            // 5. 응답 반환
             var res = new Res_JoinRoomDto
             {
                 Room = roomDto
