@@ -28,6 +28,13 @@ namespace webserver.Services.JwtService
             _jwtSettings = jwtSettings.Value;
             _redisHelper = redisHelper;
             _logger = logger;
+
+            if (string.IsNullOrEmpty(_jwtSettings.SecretKey) || _jwtSettings.SecretKey.Length < 32)
+            {
+                _logger.LogError("JWT SecretKey is too short. It must be at least 32 characters long.");
+                throw new ArgumentException("JWT SecretKey must be at least 32 characters long.", nameof(_jwtSettings.SecretKey));
+            }
+
         }
         public string GenerateAccessToken(User user)
         {

@@ -7,7 +7,7 @@ namespace webserver.Utils
         private readonly IConnectionMultiplexer _redis;
         private readonly ILogger _logger;
 
-        public RedisHelper(IConnectionMultiplexer redis, ILogger logger)
+        public RedisHelper(IConnectionMultiplexer redis, ILogger<RedisHelper> logger)
         {
             _redis = redis;
             _logger = logger;

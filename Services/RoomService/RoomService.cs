@@ -82,7 +82,8 @@ namespace webserver.Services.RoomService
             {
                 RoomName = req.RoomName,
                 MaxPlayers = 2,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                Master = userId.ToString()
             };
             var result = await _roomRepository.CreateRoomAsync(room);
             if (result.ErrorCode != DBErrorCode.Success)
@@ -99,6 +100,7 @@ namespace webserver.Services.RoomService
                     Id = room.Id,
                     Name = room.RoomName,
                     MaxPlayers = room.MaxPlayers,
+                    CurrentPlayers = 1,
                     CreatedAt = room.CreatedAt
                 }
             };

@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using webserver.DTOs;
 using webserver.Enums;
@@ -37,10 +38,12 @@ namespace webserver.Hubs
             try
             {
                 // 사용자 ID 가져오기
-                var userIdClaim = Context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userIdClaim = Context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value; // TODO 이게 계속 null이다. 연동 다시 시켜보자.
                 if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
                 {
                     _logger.LogError("인증된 사용자 ID를 찾을 수 없습니다");
+                    _logger.LogInformation("현재 컨텍스트: {ConnectionId}", Context.ConnectionId);
+                    await Clients.Caller.SendAsync("Error", "인증된 사용자 ID를 찾을 수 없습니다");
                     return null;
                 }
 

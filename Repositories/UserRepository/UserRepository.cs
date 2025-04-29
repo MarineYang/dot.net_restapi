@@ -27,7 +27,7 @@ namespace webserver.Repositories.UserRepository
         public async Task<DBResult<User>> GetByUsernameAsync(string username)
         {
             return await _dbInitializer.ExecuteLambda<User>(async (context) => {
-                var user = await context.Users.FirstOrDefaultAsync(u => u.Username == username);
+                var user = await context.Users.FirstOrDefaultAsync(u => EF.Functions.Like(u.Username, username));
                 if (user == null)
                     throw new Exception("User not found");
                 return user;
@@ -37,7 +37,7 @@ namespace webserver.Repositories.UserRepository
         public async Task<DBResult<User>> AddUserAsync(User user)
         {
             return await _dbInitializer.ExecuteLambda<User>(async (context) => {
-                var existingUser = await context.Users.FirstOrDefaultAsync(u => u.Username == user.Username);    
+                var existingUser = await context.Users.FirstOrDefaultAsync(u => EF.Functions.Like(u.Username, user.Username));
                 if (existingUser != null)
                     throw new Exception("Username already exists");
                 
