@@ -2,8 +2,6 @@
 
 namespace webserver.Game
 {
-
-
     public class GameState
     {
         public string GameId { get; set; } = Guid.NewGuid().ToString();

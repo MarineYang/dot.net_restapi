@@ -22,8 +22,17 @@
     {
         public RoomDTO Room { get; set; }
     }
+    public class Req_OutRoomDto
+    {
+        public int RoomId { get; set; }
+    }
+    public class Res_OutRoomDto
+    {
+        // public RoomDTO Room { get; set; }
+    }
 
     
+
     public class RoomDTO
     {
         public int Id { get; set; }

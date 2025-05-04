@@ -11,5 +11,6 @@ namespace webserver.Services.RoomService
         Task<ResponseWrapper<Res_CreateRoomDto>> CreateRoomAsync(Req_CreateRoomDto req);
 
         Task<ResponseWrapper<Res_JoinRoomDto>> JoinRoomAsync(Req_JoinRoomDto req);
+        Task<ResponseWrapper<Res_OutRoomDto>> OutRoomAsync(Req_OutRoomDto req);
     }
 }

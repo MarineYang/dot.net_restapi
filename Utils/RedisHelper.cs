@@ -170,5 +170,15 @@ namespace webserver.Utils
             await redis.SortedSetRemoveAsync("rooms:finished", roomId.ToString());
         }
 
+        public async Task DeleteRoomAsync(int roomId)
+        {
+            var redis = _redis.GetDatabase();
+            await redis.KeyDeleteAsync($"room:{roomId}:currentPlayers");
+            await redis.SortedSetRemoveAsync("rooms:waiting", roomId.ToString());
+            await redis.SortedSetRemoveAsync("rooms:playing", roomId.ToString());
+            await redis.SortedSetRemoveAsync("rooms:finished", roomId.ToString());
+        }   
+        
+
     }
 }

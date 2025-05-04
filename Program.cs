@@ -146,19 +146,7 @@ void ConfigureAuthentication(IServiceCollection services)
         // SignalR에서 WebSocket을 통한 인증 허용
         options.Events = new JwtBearerEvents
         {
-            OnMessageReceived = context =>
-            {
-                var accessToken = context.Request.Query["access_token"];
-                
-                // Path가 /gamehub로 시작하면 토큰 처리
-                var path = context.HttpContext.Request.Path;
-                if (!string.IsNullOrEmpty(accessToken) && 
-                    path.StartsWithSegments("/gamehub"))
-                {
-                    context.Token = accessToken;
-                }
-                return Task.CompletedTask;
-            },
+            
             OnTokenValidated = async context =>
             {
                 try
@@ -191,6 +179,33 @@ void ConfigureAuthentication(IServiceCollection services)
                 {
                     context.Fail($"Token validation error: {ex.Message}");
                 }
+            },
+            OnMessageReceived = context =>
+            {
+                // Path가 /gamehub로 시작하면 토큰 처리
+                var accessToken = context.Request.Query["access_token"];
+                Console.WriteLine($"SignalR 연결 요청: 쿼리 토큰 존재 = {!string.IsNullOrEmpty(accessToken)}");
+                var path = context.HttpContext.Request.Path;
+
+                // 2. 헤더 토큰 확인
+                var headerToken = context.Request.Headers["Authorization"].ToString();
+                Console.WriteLine($"Authorization 헤더: {headerToken}");
+
+
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/gamehub"))
+                {
+                    context.Token = accessToken;
+                }
+                else if (path.StartsWithSegments("/gamehub", StringComparison.OrdinalIgnoreCase))
+                {
+                    var authHeader = context.Request.Headers["Authorization"].ToString();
+                    if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+                    {
+                        accessToken = authHeader.Replace("Bearer ", "").Trim();
+                        context.Token = accessToken; 
+                    }
+                }
+                return Task.CompletedTask;
             },
             OnAuthenticationFailed = context =>
             {

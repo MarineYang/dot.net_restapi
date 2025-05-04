@@ -41,5 +41,12 @@ namespace webserver.Controllers
         {
             return Ok(await _roomService.JoinRoomAsync(req));
         }
+
+        [Authorize]
+        [HttpPost("out")]
+        public async Task<IActionResult> OutRoom([FromBody] Req_OutRoomDto req)
+        {
+            return Ok(await _roomService.OutRoomAsync(req));
+        }
     }
 }

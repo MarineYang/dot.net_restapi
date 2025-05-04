@@ -145,7 +145,6 @@ namespace webserver.Services.RoomService
                 CreatedAt = room.Data.CreatedAt
             };
 
-            //var userId = 1; // TODO: User ID 가져오는 부분 수정 필요
             // 방에 참가한 사용자에게 알림
             await _hubContext.Clients.Group(req.RoomId.ToString()).SendAsync("UserJoined", userId, roomDto);
 
@@ -157,6 +156,35 @@ namespace webserver.Services.RoomService
                 Room = roomDto
             };
             return ResponseWrapper<Res_JoinRoomDto>.Success(res, "Joined room successfully");
+        }
+
+        public async Task<ResponseWrapper<Res_OutRoomDto>> OutRoomAsync(Req_OutRoomDto req)
+        {
+            var userIdClaim = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                return ResponseWrapper<Res_OutRoomDto>.Failure(ErrorType.Unauthorized, "Invalid or missing user ID");
+            }
+            var room = await _roomRepository.GetRoomByIdAsync(req.RoomId);
+            if (room.Data == null || room.Data.IsDelete || room.ErrorCode != DBErrorCode.Success)
+            {
+                return ResponseWrapper<Res_OutRoomDto>.Failure(ErrorType.BadRequest, "Room not found");
+            } 
+            var currentPlayers = await redisHelper.GetCurrentPlayersAsync(req.RoomId);
+            if (currentPlayers == 1)
+            {
+                await _roomRepository.DeleteRoomAsync(req.RoomId);
+                await redisHelper.DeleteRoomAsync(req.RoomId);
+            }
+            else
+            {
+                await redisHelper.UpdateCurrentPlayersAsync(req.RoomId, currentPlayers - 1);
+            }
+            await _hubContext.Clients.Group(req.RoomId.ToString()).SendAsync("UserLeft", userId);
+            await _hubContext.Groups.RemoveFromGroupAsync(userId.ToString(), req.RoomId.ToString());
+
+            var res = new Res_OutRoomDto();
+            return ResponseWrapper<Res_OutRoomDto>.Success(res, "Out room successfully");
         }
     }
 }

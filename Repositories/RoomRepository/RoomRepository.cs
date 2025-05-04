@@ -44,5 +44,29 @@ namespace webserver.Repositories.RoomRepository
                 return room;
             });
         }
+
+        public async Task<DBResult<Room>> DeleteRoomAsync(int id)
+        {
+            return await _dbInitializer.ExecuteLambda<Room>(async (context) =>
+            {
+                var room = await context.Rooms.FindAsync(id);
+                if (room == null)
+                    throw new Exception("Room not found");
+                room.IsDelete = true;
+                await context.SaveChangesAsync();
+                return room;
+            });
+        }
+
+
+        public async Task<DBResult<Room>> UpdateRoomAsync(Room room)
+        {
+            return await _dbInitializer.ExecuteLambda<Room>(async (context) =>
+            {
+                context.Rooms.Update(room);
+                await context.SaveChangesAsync();
+                return room;
+            });
+        }
     }
 }

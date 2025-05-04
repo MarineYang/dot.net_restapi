@@ -1,6 +1,8 @@
-﻿using System.Security.Claims;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
+using NuGet.Common;
 using webserver.DTOs;
 using webserver.Enums;
 using webserver.Models;
@@ -28,17 +30,44 @@ namespace webserver.Hubs
 
         public async Task joinRoom(string roomId)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
-            await Clients.Group(roomId).SendAsync("UserJoined", Context.ConnectionId);
+            try
+            {
+                Console.WriteLine($"joinRoom 메서드 진입: roomId={roomId}, ConnectionId={Context.ConnectionId}");
+
+                // 추가 확인
+                Console.WriteLine($"사용자 인증 상태: {Context.User?.Identity?.IsAuthenticated}");
+
+                await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
+                await Clients.Group(roomId).SendAsync("UserJoined", Context.ConnectionId);
+
+                Console.WriteLine($"joinRoom 메서드 완료: roomId={roomId}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"joinRoom 실행 중 오류: {ex.Message}");
+                throw; // 다시 throw하여 클라이언트로 전파
+            }
         }
 
         // 게임 생성
-        public async Task<string> CreateGame()
+        public async Task<string> CreateGame(string accessToken)
         {
             try
             {
+                //_logger.LogInformation("accessToken : ", accessToken);
+                _logger.LogInformation("CreateGame 호출됨 - ConnectionId: {ConnectionId}", Context.ConnectionId);
+                _logger.LogInformation("인증 상태: {IsAuthenticated}", Context.User.Identity?.IsAuthenticated);
+                foreach (var claim in Context.User.Claims)
+                {
+                    _logger.LogInformation("  {Type} = {Value}", claim.Type, claim.Value);
+                }
+
                 // 사용자 ID 가져오기
-                var userIdClaim = Context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value; // TODO 이게 계속 null이다. 연동 다시 시켜보자.
+                var jwtHandler = new JwtSecurityTokenHandler();
+                var jwtToken = jwtHandler.ReadJwtToken(accessToken);
+                var userIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+                //var userIdClaim = Context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                //var userIdClaim = Context.User.FindFirst("sub")?.Value;
                 if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
                 {
                     _logger.LogError("인증된 사용자 ID를 찾을 수 없습니다");
@@ -61,8 +90,7 @@ namespace webserver.Hubs
                 // 그룹에 추가
                 await Groups.AddToGroupAsync(Context.ConnectionId, game.GameId);
 
-                _logger.LogInformation("게임 생성 및 그룹 추가: {GameId}, 사용자: {Username}({UserId})",
-                    game.GameId, userResult.Data.Username, userId);
+                _logger.LogInformation("게임 생성 및 그룹 추가: {GameId}, 사용자: {Username}({UserId})", game.GameId, userResult.Data.Username, userId);
 
                 // 게임 ID 반환
                 return game.GameId;
@@ -75,12 +103,16 @@ namespace webserver.Hubs
         }
 
         // 카드 내기
-        public async Task PlayCard(string gameId)
+        public async Task PlayCard(string gameId, string accessToken)
         {
             try
             {
                 // 사용자 ID 가져오기
-                var userIdClaim = Context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var jwtHandler = new JwtSecurityTokenHandler();
+                var jwtToken = jwtHandler.ReadJwtToken(accessToken);
+                var userIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+                //var userIdClaim = Context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                // var userIdClaim = Context.User.FindFirst("sub")?.Value;
                 if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
                 {
                     await Clients.Caller.SendAsync("Error", "인증된 사용자 ID를 찾을 수 없습니다");

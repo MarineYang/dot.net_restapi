@@ -45,12 +45,18 @@ namespace webserver.Services.JwtService
 
                 var claims = new List<Claim>
                 {
-                    new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                    new Claim(JwtRegisteredClaimNames.Name, user.Username)
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // 여기 변경
+                    new Claim(ClaimTypes.Name, user.Username),
+
+                    new Claim("userId", user.Id.ToString()), // 단순화된 이름으로 추가
+                    new Claim("debug", "true")  // 디버깅용 표시
+                    //new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                    //new Claim(JwtRegisteredClaimNames.Name, user.Username)
                     //new Claim("Win", user.Win.ToString()),
                     //new Claim("Lose", user.Lose.ToString())
                 };
 
+                
                 var token = new JwtSecurityToken(
                     issuer: _jwtSettings.Issuer,
                     audience: _jwtSettings.Audience,

@@ -1,4 +1,5 @@
-﻿using webserver.DTOs;
+﻿using System.Collections.Concurrent;
+using webserver.DTOs;
 using webserver.Enums;
 using webserver.Game;
 
@@ -8,6 +9,8 @@ namespace webserver.Services.GameService
     {
         private readonly Dictionary<string, GameState> _games = new Dictionary<string, GameState>();
         private readonly Dictionary<string, SemaphoreSlim> _gameLocks = new Dictionary<string, SemaphoreSlim>();
+        // ConcurrentDictionary 사용.
+        //private readonly ConcurrentDictionary<string, SemaphoreSlim> _gameLocks = new ConcurrentDictionary<string, SemaphoreSlim>();
         private readonly ILogger<GameService> _logger;
 
         public GameService(ILogger<GameService> logger)
@@ -27,6 +30,8 @@ namespace webserver.Services.GameService
                 }
                 return semaphore;
             }
+
+            //return _gameLocks.GetOrAdd(gameId, _ => new SemaphoreSlim(1, 1));
         }
         // 새 게임 생성
         public GameState CreateGame(int userId, string userName, string connectionId)
@@ -121,8 +126,7 @@ namespace webserver.Services.GameService
                 game.TableCards.Add(player2_Card);
                 game.TurnCount++;
 
-                _logger.LogInformation("카드 대결: {GameId}, {Player1}({Card1}) vs {Player2}({Card2})",
-                    gameId, player1.Username, player1_Card.Value, player2.Username, player2_Card.Value);
+                _logger.LogInformation("카드 대결: {GameId}, {Player1}({Card1}) vs {Player2}({Card2})", gameId, player1.Username, player1_Card.Value, player2.Username, player2_Card.Value);
 
                 // 카드 비교
                 if (player1_Card.Value > player2_Card.Value)
@@ -222,8 +226,7 @@ namespace webserver.Services.GameService
             game.TableCards.Add(player1_WarCard);
             game.TableCards.Add(player2_WarCard);
 
-            _logger.LogInformation("War 대결: {GameId}, {Player1}({Card1}) vs {Player2}({Card2})",
-                game.GameId, player1.Username, player1_WarCard.Value, player2.Username, player2_WarCard.Value);
+            _logger.LogInformation("War 대결: {GameId}, {Player1}({Card1}) vs {Player2}({Card2})", game.GameId, player1.Username, player1_WarCard.Value, player2.Username, player2_WarCard.Value);
 
             // 카드 비교
             if (player1_WarCard.Value > player2_WarCard.Value)
