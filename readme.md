@@ -7,10 +7,10 @@
 1. [주요 API 기능](#주요-api-기능)
 2. [기술 스택](#기술-스택)
 3. [주요 코드 패턴](#주요-코드-패턴)
-    - [람다식 기반 트랜잭션 래퍼(`DB_Initializer.cs`)](#1-람다식-기반-트랜잭션-래퍼(`DB_Initializer.cs`))
-    - [SignalR을 활용한 실시간 통신(`GameHubs.cs`)](#2-signalr을-활용한-실시간-통신(`GameHubs.cs`))
-    - [동시성 제어 및 비동기 처리(`GameService.cs`)](#3-동시성-제어-및-비동기-처리(`GameService.cs`))
-    - [확장 메서드를 활용한 모듈화](#4-확장-메서드를-활용한-모듈화)
+    - [람다식 기반 트랜잭션 래퍼](#람다식-기반-트랜잭션-래퍼)
+    - [SignalR을 활용한 실시간 통신](#signalr을-활용한-실시간-통신)
+    - [동시성 제어 및 비동기 처리](#동시성-제어-및-비동기-처리)
+    - [확장 메서드를 활용한 모듈화](#확장-메서드를-활용한-모듈화)
 4. [아키텍처](#아키텍처)
 
 ## 주요 API 기능
@@ -54,7 +54,7 @@
 <!-- - 로깅: Serilog -->
 
 ## 주요 코드 패턴
-### 1. 람다식 기반 트랜잭션 래퍼(`DB_Initializer.cs`)
+### 람다식 기반 트랜잭션 래퍼
 ```csharp
 // 람다식 기반 트랜잭션 래퍼
 public async Task<DBResult<T>> ExecuteLambdaTransaction<T>(
@@ -106,7 +106,7 @@ var result = await dbInitializer.ExecuteLambdaTransaction<int>(async (context, t
 - 연결 풀 고갈 및 메모리 누수 방지가 가능.
 - 추가적인 예외처리 및 로깅 가능.
 
-### 2. SignalR을 활용한 실시간 통신(`GameHubs.cs`)
+### SignalR을 활용한 실시간 통신
 ```csharp
 public class GameHub : Hub
 {
@@ -136,7 +136,7 @@ public class GameHub : Hub
 - 양방향 통신: 클라이언트의 액션(카드 제출 등)이 서버로 전송되고, 처리 결과가 모든 참여자에게 전파
 - 연결 상태 관리: 클라이언트 연결/연결 해제 감지 및 대응
 
-### 3. 동시성 제어 및 비동기 처리(`GameService.cs`)
+### 동시성 제어 및 비동기 처리
 ```csharp
 public class GameService
 {
@@ -194,7 +194,7 @@ public class GameService
 - 확장성: 동시 접속자가 많아도 개별 게임별로 락을 관리하여 확장성 확보
 - 자원 관리: `finally` 블록에서 락 해제를 보장하여 데드락 방지
  
-### 4. 확장 메서드를 활용한 모듈화
+### 확장 메서드를 활용한 모듈화
 ```csharp
 // Extensions/ServiceCollectionExtensions.cs
 public static class ServiceCollectionExtensions
