@@ -136,7 +136,7 @@ public class GameHub : Hub
 - 양방향 통신: 클라이언트의 액션(카드 제출 등)이 서버로 전송되고, 처리 결과가 모든 참여자에게 전파
 - 연결 상태 관리: 클라이언트 연결/연결 해제 감지 및 대응
 
- -**3. 동시성 제어 및 비동기 처리**
+ -**3. 동시성 제어 및 비동기 처리(`GameService.cs`)**
 ```csharp
 public class GameService
 {
